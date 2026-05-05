@@ -1,0 +1,95 @@
+{
+  "name": "md-live-preview",
+  "displayName": "Markdown Live Preview (LLM-aware)",
+  "description": "LLMによるファイル更新を検知し、ブロック単位の差分レンダリングで滑らかにプレビューを更新するMarkdownエディタ。Mermaid・KaTeX・テーブル対応。",
+  "version": "0.1.0",
+  "publisher": "kooooochi",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kooooochi/md-live-preview.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kooooochi/md-live-preview/issues"
+  },
+  "homepage": "https://github.com/kooooochi/md-live-preview#readme",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "markdown",
+    "preview",
+    "mermaid",
+    "katex",
+    "llm",
+    "live",
+    "ai"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "mdLivePreview.open",
+        "title": "Open Live Preview",
+        "category": "Markdown Live",
+        "icon": "$(open-preview)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "mdLivePreview.open",
+          "when": "editorLangId == markdown",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "mdLivePreview.open",
+          "when": "editorLangId == markdown"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Markdown Live Preview",
+      "properties": {
+        "mdLivePreview.mermaidTheme": {
+          "type": "string",
+          "enum": ["default", "dark", "forest", "neutral"],
+          "default": "default",
+          "description": "Mermaid図のテーマ"
+        },
+        "mdLivePreview.enableEdit": {
+          "type": "boolean",
+          "default": true,
+          "description": "プレビュー上のダブルクリックでブロック編集を有効にする"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.0.0",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.24.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "markdown-it": "^14.0.0"
+  }
+}

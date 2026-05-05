@@ -1,0 +1,31 @@
+name: Publish
+
+# Tag (v0.1.0など) をプッシュすると自動でMarketplaceとOpen VSXに公開
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run compile
+
+      - name: Publish to VS Code Marketplace
+        run: npx vsce publish -p $VSCE_PAT
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      # Open VSX (Cursor, VSCodium, Gitpod向け) にも公開する場合
+      - name: Publish to Open VSX
+        run: npx ovsx publish -p $OVSX_PAT
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        continue-on-error: true

@@ -1,0 +1,79 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.6;
+  padding: 1.5em 2em;
+  max-width: 900px;
+  margin: 0 auto;
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+}
+#status {
+  position: fixed;
+  top: 8px;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  background: var(--vscode-editorWidget-background);
+  color: var(--vscode-editorWidget-foreground);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+#status:not(:empty) { opacity: 1; }
+#status.ok { color: var(--vscode-charts-green, #4ec9b0); }
+
+.block {
+  margin: 0.6em 0;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: text;
+  transition: border-color 0.15s, background 0.15s;
+}
+.block:hover { border-color: var(--vscode-editorWidget-border, #444); }
+.block-mermaid, .block-math { text-align: center; padding: 0.8em; }
+
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0; }
+th, td { border: 1px solid var(--vscode-editorWidget-border, #555); padding: 6px 10px; }
+th { background: var(--vscode-editorWidget-background); }
+
+pre, code {
+  font-family: 'SF Mono', Consolas, 'Courier New', monospace;
+  background: var(--vscode-textCodeBlock-background, rgba(127,127,127,0.1));
+}
+pre { padding: 0.8em; border-radius: 4px; overflow-x: auto; }
+code { padding: 1px 4px; border-radius: 3px; }
+pre code { padding: 0; background: transparent; }
+
+blockquote {
+  border-left: 3px solid var(--vscode-editorWidget-border, #555);
+  margin: 0.5em 0;
+  padding: 0.2em 1em;
+  color: var(--vscode-descriptionForeground);
+}
+
+.block-editing { padding: 0.4em; border: 1px solid var(--vscode-focusBorder); }
+.block-editor {
+  width: 100%; box-sizing: border-box;
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 13px;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border, #555);
+  padding: 0.5em;
+  border-radius: 3px;
+  resize: vertical;
+}
+.block-editor-bar { margin-top: 6px; display: flex; gap: 6px; }
+.block-editor-bar button {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.block-editor-bar button:hover { background: var(--vscode-button-hoverBackground); }
+
+.mermaid-error { color: var(--vscode-errorForeground); text-align: left; }
