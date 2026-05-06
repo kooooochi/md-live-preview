@@ -2,7 +2,7 @@
 
 LLMがファイルを書き換えても **チラつかない** Markdownプレビュー。Mermaid・KaTeX・テーブル対応。
 
-![Markdown Sync Studio overview](media/screenshots/overview.png)
+![Markdown Sync Studio overview](https://raw.githubusercontent.com/kooooochi/markdown-sync-studio/main/media/screenshots/overview.png)
 
 ## なぜこの拡張?
 
@@ -42,27 +42,27 @@ LLM(Claude / ChatGPT / Cursor など)に Markdown を生成・編集させてい
 
 ### 全体表示
 
-![Markdown エディタとライブプレビュー全体](media/screenshots/overview.png)
+![Markdown エディタとライブプレビュー全体](https://raw.githubusercontent.com/kooooochi/markdown-sync-studio/main/media/screenshots/overview.png)
 
 ### ウィンドウ幅に合わせた表示
 
-![ウィンドウ幅に合わせたプレビュー表示](media/screenshots/overview-fited.png)
+![ウィンドウ幅に合わせたプレビュー表示](https://raw.githubusercontent.com/kooooochi/markdown-sync-studio/main/media/screenshots/overview-fited.png)
 
 ### ブロック編集
 
-![プレビュー上でのブロック編集](media/screenshots/block-editing.png)
+![プレビュー上でのブロック編集](https://raw.githubusercontent.com/kooooochi/markdown-sync-studio/main/media/screenshots/block-editing.png)
 
 ### Git 変更バー
 
-![Git 変更バーの表示](media/screenshots/git-change-bars.png)
+![Git 変更バーの表示](https://raw.githubusercontent.com/kooooochi/markdown-sync-studio/main/media/screenshots/git-change-bars.png)
 
 ### Mermaid・KaTeX
 
-![Mermaid と KaTeX のレンダリング](media/screenshots/mermaid-katex.png)
+![Mermaid と KaTeX のレンダリング](https://raw.githubusercontent.com/kooooochi/markdown-sync-studio/main/media/screenshots/mermaid-katex.png)
 
 ### コードブロックのコピー
 
-![コードブロックの Copy ボタン](media/screenshots/code-copy.png)
+![コードブロックの Copy ボタン](https://raw.githubusercontent.com/kooooochi/markdown-sync-studio/main/media/screenshots/code-copy.png)
 
 ## インストール
 
