@@ -12,6 +12,7 @@ node_modules/**
 !node_modules/punycode.js/**
 !node_modules/uc.micro/**
 tsconfig.json
+install-extension.sh
 *.vsix
 **/*.map
 **/.DS_Store

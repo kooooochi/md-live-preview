@@ -18,7 +18,7 @@
   const cache = new Map();
   let currentBlocks = [];
   let editingIndex = -1;
-  let pendingPatch = null;
+  let activeEdit = null;
 
   function setStatus(text, kind) {
     status.textContent = text;
@@ -59,6 +59,11 @@
     }
 
     if (config.enableEdit) {
+      el.addEventListener('click', () => {
+        if (activeEdit && activeEdit.index !== Number(el.dataset.index)) {
+          startEdit(Number(el.dataset.index));
+        }
+      });
       el.addEventListener('dblclick', () => startEdit(Number(el.dataset.index)));
     }
     cache.set(block.hash, el);
@@ -112,19 +117,31 @@
   }
 
   function applyPatch(patch) {
-    if (editingIndex >= 0) {
-      pendingPatch = patch;
-      return;
-    }
     const newBlocks = patch.blocks;
     const ops = patch.ops;
     const scrollY = window.scrollY;
     const frag = document.createDocumentFragment();
     let touched = 0;
-    newBlocks.forEach((b, i) => frag.appendChild(makeBlockEl(b, i)));
+
+    if (activeEdit) {
+      const sameBlockIndex = newBlocks.findIndex((b) => b.hash === activeEdit.block.hash);
+      if (sameBlockIndex >= 0) {
+        activeEdit.index = sameBlockIndex;
+        editingIndex = sameBlockIndex;
+      }
+    }
+
+    newBlocks.forEach((b, i) => {
+      if (activeEdit && i === activeEdit.index) {
+        frag.appendChild(activeEdit.wrap);
+        return;
+      }
+      frag.appendChild(makeBlockEl(b, i));
+    });
     ops.forEach((op) => {
       if (op.op !== 'keep') touched++;
     });
+    if (activeEdit && touched > 0) markExternalUpdate();
     root.innerHTML = '';
     root.appendChild(frag);
     currentBlocks = newBlocks;
@@ -133,7 +150,11 @@
   }
 
   function startEdit(index) {
-    if (editingIndex >= 0 || !config.enableEdit) return;
+    if (!config.enableEdit) return;
+    if (activeEdit) {
+      if (activeEdit.index === index) return;
+      finishEdit(true);
+    }
     const block = currentBlocks[index];
     if (!block) return;
     editingIndex = index;
@@ -151,8 +172,15 @@
     save.textContent = 'Save (Ctrl+Enter)';
     const cancel = document.createElement('button');
     cancel.textContent = 'Cancel (Esc)';
+    const updateIcon = document.createElement('span');
+    updateIcon.className = 'edit-update-indicator';
+    updateIcon.textContent = '!';
+    updateIcon.title = 'This file changed while you are editing.';
+    updateIcon.setAttribute('aria-label', 'File changed while editing');
+    updateIcon.hidden = true;
     bar.appendChild(save);
     bar.appendChild(cancel);
+    bar.appendChild(updateIcon);
 
     const wrap = document.createElement('div');
     wrap.className = 'block block-editing';
@@ -160,33 +188,37 @@
     wrap.appendChild(bar);
     el.replaceWith(wrap);
     ta.focus();
+    activeEdit = { index, block, wrap, ta, updateIcon };
 
-    const finishCancel = () => {
-      editingIndex = -1;
-      vscode.postMessage({ type: 'editCancel' });
-      wrap.replaceWith(makeBlockEl(block, index));
-      flushPending();
-    };
-    const finishSave = () => {
-      const newRaw = ta.value;
-      editingIndex = -1;
-      vscode.postMessage({ type: 'editSave', index, newRaw });
-      flushPending();
-    };
-
-    save.addEventListener('click', finishSave);
-    cancel.addEventListener('click', finishCancel);
+    save.addEventListener('click', () => finishEdit(true));
+    cancel.addEventListener('click', () => finishEdit(false));
     ta.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') finishCancel();
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) finishSave();
+      if (e.key === 'Escape') finishEdit(false);
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) finishEdit(true);
     });
   }
 
-  function flushPending() {
-    if (pendingPatch) {
-      const p = pendingPatch;
-      pendingPatch = null;
-      applyPatch(p);
+  function markExternalUpdate() {
+    if (!activeEdit) return;
+    activeEdit.updateIcon.hidden = false;
+    activeEdit.wrap.classList.add('block-editing-updated');
+  }
+
+  function finishEdit(saveIfChanged) {
+    if (!activeEdit) return;
+    const { index, block, wrap, ta } = activeEdit;
+    const newRaw = ta.value;
+    const changed = newRaw !== block.raw;
+    const latestBlock = currentBlocks[index] || block;
+
+    activeEdit = null;
+    editingIndex = -1;
+
+    if (saveIfChanged && changed) {
+      vscode.postMessage({ type: 'editSave', index, newRaw });
+    } else {
+      wrap.replaceWith(makeBlockEl(latestBlock, index));
+      vscode.postMessage({ type: 'editCancel' });
     }
   }
 
@@ -200,6 +232,8 @@
       fullRender(msg.blocks);
     } else if (msg.type === 'patch') {
       applyPatch(msg.patch);
+    } else if (msg.type === 'undoResult') {
+      setStatus(msg.ok ? 'undone' : 'nothing to undo', msg.ok ? 'ok' : 'warn');
     } else if (msg.type === 'config') {
       const old = config;
       config = msg.config;
@@ -208,6 +242,19 @@
         cache.clear();
         fullRender(currentBlocks);
       }
+    }
+  });
+
+  window.addEventListener('keydown', (e) => {
+    const target = e.target;
+    const isTextInput =
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLInputElement ||
+      (target instanceof HTMLElement && target.isContentEditable);
+    if (isTextInput) return;
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      vscode.postMessage({ type: 'undoEdit' });
     }
   });
 

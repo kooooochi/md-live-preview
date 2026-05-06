@@ -21,6 +21,7 @@ body {
 }
 #status:not(:empty) { opacity: 1; }
 #status.ok { color: var(--vscode-charts-green, #4ec9b0); }
+#status.warn { color: var(--vscode-notificationsWarningIcon-foreground, #cca700); }
 
 .block {
   margin: 0.6em 0;
@@ -53,6 +54,9 @@ blockquote {
 }
 
 .block-editing { padding: 0.4em; border: 1px solid var(--vscode-focusBorder); }
+.block-editing-updated {
+  border-color: var(--vscode-notificationsWarningIcon-foreground, #cca700);
+}
 .block-editor {
   width: 100%; box-sizing: border-box;
   font-family: 'SF Mono', Consolas, monospace;
@@ -64,7 +68,7 @@ blockquote {
   border-radius: 3px;
   resize: vertical;
 }
-.block-editor-bar { margin-top: 6px; display: flex; gap: 6px; }
+.block-editor-bar { margin-top: 6px; display: flex; gap: 6px; align-items: center; }
 .block-editor-bar button {
   background: var(--vscode-button-background);
   color: var(--vscode-button-foreground);
@@ -75,5 +79,19 @@ blockquote {
   font-size: 12px;
 }
 .block-editor-bar button:hover { background: var(--vscode-button-hoverBackground); }
+.edit-update-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--vscode-notificationsWarningIcon-foreground, #cca700);
+  border: 1px solid currentColor;
+}
+.edit-update-indicator[hidden] { display: none; }
 
 .mermaid-error { color: var(--vscode-errorForeground); text-align: left; }

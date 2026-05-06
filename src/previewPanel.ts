@@ -18,6 +18,7 @@ export class PreviewPanel {
   private md: MarkdownIt;
   private lastBlocks: Block[] = [];
   private editLocked = false;
+  private editHistory: string[] = [];
 
   static createOrShow(context: vscode.ExtensionContext, uri: vscode.Uri) {
     const key = uri.toString();
@@ -109,7 +110,6 @@ export class PreviewPanel {
   }
 
   private async onFileChanged() {
-    if (this.editLocked) return;
     await this.render(false);
   }
 
@@ -229,8 +229,12 @@ export class PreviewPanel {
       case 'editSave': {
         this.editLocked = false;
         await this.applyBlockEdit(msg.index, msg.newRaw);
+        await this.render(false);
         return;
       }
+      case 'undoEdit':
+        await this.undoLastPreviewEdit();
+        return;
       case 'ready':
         this.render(true);
         return;
@@ -239,18 +243,42 @@ export class PreviewPanel {
 
   private async applyBlockEdit(index: number, newRaw: string) {
     const doc = await vscode.workspace.openTextDocument(this.docUri);
-    const blocks = this.parseToBlocks(doc.getText());
+    const oldText = doc.getText();
+    const blocks = this.parseToBlocks(oldText);
     if (index < 0 || index >= blocks.length) return;
     blocks[index] = this.makeBlock(newRaw);
     const newText = blocks.map((b) => b.raw).join('\n\n') + '\n';
+    if (newText === oldText) return;
+    this.editHistory.push(oldText);
+    if (this.editHistory.length > 50) this.editHistory.shift();
     const edit = new vscode.WorkspaceEdit();
     const fullRange = new vscode.Range(
       doc.positionAt(0),
-      doc.positionAt(doc.getText().length)
+      doc.positionAt(oldText.length)
     );
     edit.replace(this.docUri, fullRange, newText);
     await vscode.workspace.applyEdit(edit);
     await doc.save();
+  }
+
+  private async undoLastPreviewEdit() {
+    const previousText = this.editHistory.pop();
+    if (previousText === undefined) {
+      this.panel.webview.postMessage({ type: 'undoResult', ok: false });
+      return;
+    }
+    const doc = await vscode.workspace.openTextDocument(this.docUri);
+    const currentText = doc.getText();
+    const edit = new vscode.WorkspaceEdit();
+    const fullRange = new vscode.Range(
+      doc.positionAt(0),
+      doc.positionAt(currentText.length)
+    );
+    edit.replace(this.docUri, fullRange, previousText);
+    await vscode.workspace.applyEdit(edit);
+    await doc.save();
+    await this.render(false);
+    this.panel.webview.postMessage({ type: 'undoResult', ok: true });
   }
 
   private getHtml(context: vscode.ExtensionContext): string {
