@@ -31,6 +31,8 @@
     "ai"
   ],
   "activationEvents": [
+    "onStartupFinished",
+    "onCommand:mdLivePreview.open",
     "onLanguage:markdown"
   ],
   "main": "./out/extension.js",
