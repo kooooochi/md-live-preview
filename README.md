@@ -25,6 +25,33 @@ LLM(Claude / ChatGPT / Cursor など)に Markdown を生成・編集させてい
 - ✏️ **ブロック単位の編集** — プレビューをダブルクリックで textarea に切替、`Ctrl+Enter` で保存。編集中に別ブロックをクリックすると、変更があれば保存して移動、変更がなければそのまま移動
 - 🔒 **編集中ロック** — ユーザー編集中は LLM の更新で上書きされないよう自動ロック
 
+## スクリーンショット
+
+画像は `media/screenshots/` に配置してください。
+撮影用の Markdown サンプルは `samples/screenshot-sample.md` にあります。
+
+| 画像 | 配置先 | 用途 |
+|------|--------|------|
+| `overview.png` | `media/screenshots/overview.png` | Markdown エディタとライブプレビュー全体 |
+| `block-editing.png` | `media/screenshots/block-editing.png` | プレビュー上でのブロック編集 |
+| `git-change-bars.png` | `media/screenshots/git-change-bars.png` | Git 変更バーの表示 |
+| `mermaid-katex.png` | `media/screenshots/mermaid-katex.png` | Mermaid と KaTeX のレンダリング |
+| `code-copy.png` | `media/screenshots/code-copy.png` | コードブロックの Copy ボタン |
+
+<!-- 画像を用意したら、下のコメントを外してください。
+
+![Overview](media/screenshots/overview.png)
+
+![Block editing](media/screenshots/block-editing.png)
+
+![Git change bars](media/screenshots/git-change-bars.png)
+
+![Mermaid and KaTeX](media/screenshots/mermaid-katex.png)
+
+![Code copy button](media/screenshots/code-copy.png)
+
+-->
+
 ## インストール
 
 ### Marketplace から (公開後)
@@ -207,4 +234,3 @@ MIT — [LICENSE](LICENSE) を参照
 
 Issue / PR 歓迎です。
 [GitHub](https://github.com/kooooochi/md-live-preview)
-
