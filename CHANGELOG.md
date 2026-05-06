@@ -16,4 +16,4 @@
 - GFM テーブルのサポート(markdown-it 標準)
 - ダブルクリックによるブロック単位編集
 - 編集中のファイル監視ロック(LLM書き込みとの競合回避)
-- 設定: `mdLivePreview.mermaidTheme`, `mdLivePreview.enableEdit`
+- 設定: `markdownSyncEditor.mermaidTheme`, `markdownSyncEditor.enableEdit`

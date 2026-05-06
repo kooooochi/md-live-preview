@@ -1,4 +1,4 @@
-# Markdown Live Preview Demo
+# Markdown Sync Editor Demo
 
 このファイルは README 用スクリーンショットを撮るためのサンプルです。ライブプレビュー、見出し番号、Git 変更バー、Mermaid、KaTeX、コードブロックの Copy ボタンをまとめて確認できます。
 
@@ -38,7 +38,7 @@ $$
 
 Markdown の画像記法でローカル画像を表示できます。
 
-![Markdown Live Preview overview](../media/screenshots/overview.png)
+![Markdown Sync Editor overview](../media/screenshots/overview.png)
 
 ## Code Block
 

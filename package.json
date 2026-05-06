@@ -1,19 +1,19 @@
 {
-  "name": "md-live-preview",
-  "displayName": "Markdown Live Preview (LLM-aware)",
-  "description": "LLMによるファイル更新を検知し、ブロック単位の差分レンダリングで滑らかにプレビューを更新するMarkdownエディタ。Mermaid・KaTeX・テーブル対応。",
+  "name": "markdown-sync-editor",
+  "displayName": "Markdown Sync Editor",
+  "description": "LLMや外部ツールによるMarkdown更新と同期し、ブロック単位の差分レンダリングで滑らかにプレビューを更新するMarkdownエディタ。Mermaid・KaTeX・テーブル対応。",
   "version": "0.1.0",
   "publisher": "kooooochi",
   "license": "MIT",
   "icon": "media/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kooooochi/md-live-preview.git"
+    "url": "https://github.com/kooooochi/markdown-sync-editor.git"
   },
   "bugs": {
-    "url": "https://github.com/kooooochi/md-live-preview/issues"
+    "url": "https://github.com/kooooochi/markdown-sync-editor/issues"
   },
-  "homepage": "https://github.com/kooooochi/md-live-preview#readme",
+  "homepage": "https://github.com/kooooochi/markdown-sync-editor#readme",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -32,44 +32,44 @@
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:mdLivePreview.open",
+    "onCommand:markdownSyncEditor.open",
     "onLanguage:markdown"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "mdLivePreview.open",
-        "title": "Open Live Preview",
-        "category": "Markdown Live",
+        "command": "markdownSyncEditor.open",
+        "title": "Open Synced Preview",
+        "category": "Markdown Sync",
         "icon": "$(open-preview)"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "mdLivePreview.open",
+          "command": "markdownSyncEditor.open",
           "when": "editorLangId == markdown",
           "group": "navigation"
         }
       ],
       "commandPalette": [
         {
-          "command": "mdLivePreview.open",
+          "command": "markdownSyncEditor.open",
           "when": "editorLangId == markdown"
         }
       ]
     },
     "configuration": {
-      "title": "Markdown Live Preview",
+      "title": "Markdown Sync Editor",
       "properties": {
-        "mdLivePreview.mermaidTheme": {
+        "markdownSyncEditor.mermaidTheme": {
           "type": "string",
           "enum": ["default", "dark", "forest", "neutral"],
           "default": "default",
           "description": "Mermaid図のテーマ"
         },
-        "mdLivePreview.enableEdit": {
+        "markdownSyncEditor.enableEdit": {
           "type": "boolean",
           "default": true,
           "description": "プレビュー上のダブルクリックでブロック編集を有効にする"

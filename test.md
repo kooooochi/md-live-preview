@@ -1,4 +1,4 @@
-# Markdown Live Preview - 動作確認
+# Markdown Sync Editor - 動作確認
 
 普通の段落です。インライン数式 $E = mc^2$ も綺麗にレンダリングされます。
 

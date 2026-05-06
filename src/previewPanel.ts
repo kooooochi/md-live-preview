@@ -33,7 +33,7 @@ export class PreviewPanel {
       return;
     }
     const panel = vscode.window.createWebviewPanel(
-      'mdLivePreview',
+      'markdownSyncEditor',
       `Preview: ${path.basename(uri.fsPath)}`,
       vscode.ViewColumn.Beside,
       {
@@ -90,7 +90,7 @@ export class PreviewPanel {
     // React to config changes
     vscode.workspace.onDidChangeConfiguration(
       (e) => {
-        if (e.affectsConfiguration('mdLivePreview')) {
+        if (e.affectsConfiguration('markdownSyncEditor')) {
           this.panel.webview.postMessage({
             type: 'config',
             config: this.getConfig(),
@@ -113,7 +113,7 @@ export class PreviewPanel {
   }
 
   private getConfig() {
-    const cfg = vscode.workspace.getConfiguration('mdLivePreview');
+    const cfg = vscode.workspace.getConfiguration('markdownSyncEditor');
     return {
       mermaidTheme: cfg.get<string>('mermaidTheme', 'default'),
       enableEdit: cfg.get<boolean>('enableEdit', true),
