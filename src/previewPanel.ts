@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import { execFile } from 'child_process';
 import MarkdownIt from 'markdown-it';
 
 interface Block {
@@ -8,6 +9,9 @@ interface Block {
   html: string;
   raw: string;
   type: string; // 'mermaid' | 'math' | 'normal'
+  startLine: number;
+  endLine: number;
+  gitChanged: boolean;
 }
 
 export class PreviewPanel {
@@ -122,7 +126,8 @@ export class PreviewPanel {
       return;
     }
 
-    const blocks = this.parseToBlocks(text);
+    const gitChangedLines = await this.getGitChangedLines(text);
+    const blocks = this.parseToBlocks(text, gitChangedLines);
 
     if (isInitial) {
       this.lastBlocks = blocks;
@@ -139,64 +144,186 @@ export class PreviewPanel {
     this.panel.webview.postMessage({ type: 'patch', patch });
   }
 
-  private parseToBlocks(text: string): Block[] {
+  private parseToBlocks(text: string, gitChangedLines = new Set<number>()): Block[] {
     const lines = text.split(/\r?\n/);
-    const rawBlocks: string[] = [];
+    const rawBlocks: Array<{ raw: string; startLine: number; endLine: number }> = [];
     let buf: string[] = [];
+    let bufStartLine = 0;
     let inFence = false;
     let fenceMarker = '';
 
     const flush = () => {
       if (buf.length && buf.some((l) => l.trim() !== '')) {
-        rawBlocks.push(buf.join('\n'));
+        rawBlocks.push({
+          raw: buf.join('\n'),
+          startLine: bufStartLine,
+          endLine: bufStartLine + buf.length - 1,
+        });
       }
       buf = [];
+      bufStartLine = 0;
     };
 
-    for (const line of lines) {
+    const pushLine = (line: string, lineNumber: number) => {
+      if (!buf.length) bufStartLine = lineNumber;
+      buf.push(line);
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const lineNumber = i + 1;
       const fenceMatch = line.match(/^(```|~~~)/);
       if (fenceMatch) {
         if (!inFence) {
           if (buf.length && buf.some((l) => l.trim() !== '')) flush();
           inFence = true;
           fenceMarker = fenceMatch[1];
-          buf.push(line);
+          pushLine(line, lineNumber);
         } else if (line.startsWith(fenceMarker)) {
-          buf.push(line);
-          rawBlocks.push(buf.join('\n'));
+          pushLine(line, lineNumber);
+          rawBlocks.push({
+            raw: buf.join('\n'),
+            startLine: bufStartLine,
+            endLine: lineNumber,
+          });
           buf = [];
+          bufStartLine = 0;
           inFence = false;
         } else {
-          buf.push(line);
+          pushLine(line, lineNumber);
         }
         continue;
       }
       if (inFence) {
-        buf.push(line);
+        pushLine(line, lineNumber);
         continue;
       }
       if (line.trim() === '') {
         flush();
       } else {
-        buf.push(line);
+        pushLine(line, lineNumber);
       }
     }
     flush();
 
-    return rawBlocks.map((raw) => this.makeBlock(raw));
+    const headingCounters = [0, 0, 0, 0, 0, 0];
+    return rawBlocks.map((b) =>
+      this.makeBlock(
+        b.raw,
+        b.startLine,
+        b.endLine,
+        this.hasChangedLine(gitChangedLines, b.startLine, b.endLine),
+        headingCounters
+      )
+    );
   }
 
-  private makeBlock(raw: string): Block {
-    const hash = crypto.createHash('md5').update(raw).digest('hex');
+  private makeBlock(
+    raw: string,
+    startLine = 0,
+    endLine = 0,
+    gitChanged = false,
+    headingCounters?: number[]
+  ): Block {
     const mermaidMatch = raw.match(/^```mermaid\s*\n([\s\S]*?)\n```$/);
     if (mermaidMatch) {
-      return { hash, raw, type: 'mermaid', html: mermaidMatch[1] };
+      const hash = crypto.createHash('md5').update(raw).digest('hex');
+      return { hash, raw, type: 'mermaid', html: mermaidMatch[1], startLine, endLine, gitChanged };
     }
     if (/^\$\$[\s\S]+\$\$$/.test(raw.trim())) {
       const inner = raw.trim().replace(/^\$\$|\$\$$/g, '');
-      return { hash, raw, type: 'math', html: inner };
+      const hash = crypto.createHash('md5').update(raw).digest('hex');
+      return { hash, raw, type: 'math', html: inner, startLine, endLine, gitChanged };
     }
-    return { hash, raw, type: 'normal', html: this.md.render(raw) };
+    const numberedRaw = headingCounters ? this.addHeadingNumbers(raw, headingCounters) : raw;
+    const html = this.md.render(numberedRaw);
+    const hash = crypto.createHash('md5').update(raw).update(html).digest('hex');
+    return { hash, raw, type: 'normal', html, startLine, endLine, gitChanged };
+  }
+
+  private addHeadingNumbers(raw: string, counters: number[]) {
+    const lines = raw.split(/\r?\n/);
+    let inFence = false;
+    let fenceMarker = '';
+
+    return lines
+      .map((line) => {
+        const fenceMatch = line.match(/^(```|~~~)/);
+        if (fenceMatch) {
+          if (!inFence) {
+            inFence = true;
+            fenceMarker = fenceMatch[1];
+          } else if (line.startsWith(fenceMarker)) {
+            inFence = false;
+          }
+          return line;
+        }
+        if (inFence) return line;
+
+        const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
+        if (!headingMatch) return line;
+
+        const level = headingMatch[1].length;
+        counters[level - 1]++;
+        for (let i = level; i < counters.length; i++) counters[i] = 0;
+        for (let i = 0; i < level - 1; i++) {
+          if (counters[i] === 0) counters[i] = 1;
+        }
+
+        const number = counters.slice(0, level).join('.');
+        return `${headingMatch[1]} ${number}. ${headingMatch[2]}`;
+      })
+      .join('\n');
+  }
+
+  private hasChangedLine(changedLines: Set<number>, startLine: number, endLine: number) {
+    for (let line = startLine; line <= endLine; line++) {
+      if (changedLines.has(line)) return true;
+    }
+    return false;
+  }
+
+  private async getGitChangedLines(text: string) {
+    const changedLines = new Set<number>();
+    try {
+      const status = await this.git(['status', '--porcelain', '--', this.docUri.fsPath]);
+      if (status.trimStart().startsWith('??')) {
+        for (let line = 1; line <= text.split(/\r?\n/).length; line++) {
+          changedLines.add(line);
+        }
+        return changedLines;
+      }
+
+      const diff = await this.git(['diff', 'HEAD', '--unified=0', '--', this.docUri.fsPath]);
+      for (const line of diff.split(/\r?\n/)) {
+        const match = line.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/);
+        if (!match) continue;
+        const start = Number(match[1]);
+        const count = match[2] === undefined ? 1 : Number(match[2]);
+        if (count === 0) {
+          changedLines.add(Math.max(1, start));
+          continue;
+        }
+        for (let offset = 0; offset < count; offset++) {
+          changedLines.add(start + offset);
+        }
+      }
+    } catch {
+      // Git information is optional; non-repository files render normally.
+    }
+    return changedLines;
+  }
+
+  private git(args: string[]) {
+    return new Promise<string>((resolve, reject) => {
+      execFile('git', args, { cwd: path.dirname(this.docUri.fsPath) }, (error, stdout) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(stdout);
+      });
+    });
   }
 
   private diffBlocks(oldB: Block[], newB: Block[]) {

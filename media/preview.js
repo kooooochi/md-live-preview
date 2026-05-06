@@ -19,6 +19,38 @@
   let currentBlocks = [];
   let editingIndex = -1;
   let activeEdit = null;
+  let widthMode = 'default';
+
+  function initLayoutControls() {
+    const toolbar = document.createElement('div');
+    toolbar.id = 'layoutControls';
+    toolbar.setAttribute('aria-label', 'Preview layout controls');
+
+    const fluid = document.createElement('button');
+    fluid.type = 'button';
+    fluid.textContent = 'Fit';
+    fluid.title = 'Fit preview width to the window';
+
+    const normal = document.createElement('button');
+    normal.type = 'button';
+    normal.textContent = 'Default';
+    normal.title = 'Use default preview width';
+
+    toolbar.appendChild(fluid);
+    toolbar.appendChild(normal);
+    document.body.appendChild(toolbar);
+
+    const setWidthMode = (mode) => {
+      widthMode = mode;
+      document.body.classList.toggle('width-fluid', widthMode === 'fluid');
+      fluid.classList.toggle('active', widthMode === 'fluid');
+      normal.classList.toggle('active', widthMode === 'default');
+    };
+
+    fluid.addEventListener('click', () => setWidthMode('fluid'));
+    normal.addEventListener('click', () => setWidthMode('default'));
+    setWidthMode(widthMode);
+  }
 
   function setStatus(text, kind) {
     status.textContent = text;
@@ -31,15 +63,19 @@
   }
 
   function makeBlockEl(block, index) {
-    let el = cache.get(block.hash);
+    const key = `${block.hash}:${block.startLine}:${index}`;
+    let el = cache.get(key);
     if (el) {
       el.dataset.index = String(index);
+      syncBlockState(el, block);
       return el;
     }
     el = document.createElement('div');
-    el.className = 'block block-' + block.type;
     el.dataset.hash = block.hash;
     el.dataset.index = String(index);
+    el.dataset.startLine = String(block.startLine || '');
+    el.dataset.endLine = String(block.endLine || '');
+    syncBlockState(el, block);
 
     if (block.type === 'mermaid') {
       const container = document.createElement('div');
@@ -66,8 +102,14 @@
       });
       el.addEventListener('dblclick', () => startEdit(Number(el.dataset.index)));
     }
-    cache.set(block.hash, el);
+    cache.set(key, el);
     return el;
+  }
+
+  function syncBlockState(el, block) {
+    el.className = 'block block-' + block.type;
+    el.classList.toggle('block-git-changed', Boolean(block.gitChanged));
+    el.dataset.gitChanged = block.gitChanged ? 'true' : 'false';
   }
 
   async function renderMermaid(container, code) {
@@ -258,5 +300,6 @@
     }
   });
 
+  initLayoutControls();
   vscode.postMessage({ type: 'ready' });
 })();
