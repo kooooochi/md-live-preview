@@ -1,6 +1,6 @@
 {
-  "name": "markdown-sync-editor",
-  "displayName": "Markdown Sync Editor",
+  "name": "markdown-sync-studio",
+  "displayName": "Markdown Sync Studio",
   "description": "LLMや外部ツールによるMarkdown更新と同期し、ブロック単位の差分レンダリングで滑らかにプレビューを更新するMarkdownエディタ。Mermaid・KaTeX・テーブル対応。",
   "version": "0.1.0",
   "publisher": "kooooochi",
@@ -8,12 +8,12 @@
   "icon": "media/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kooooochi/markdown-sync-editor.git"
+    "url": "https://github.com/kooooochi/markdown-sync-studio.git"
   },
   "bugs": {
-    "url": "https://github.com/kooooochi/markdown-sync-editor/issues"
+    "url": "https://github.com/kooooochi/markdown-sync-studio/issues"
   },
-  "homepage": "https://github.com/kooooochi/markdown-sync-editor#readme",
+  "homepage": "https://github.com/kooooochi/markdown-sync-studio#readme",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -32,14 +32,14 @@
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:markdownSyncEditor.open",
+    "onCommand:markdownSyncStudio.open",
     "onLanguage:markdown"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "markdownSyncEditor.open",
+        "command": "markdownSyncStudio.open",
         "title": "Open Synced Preview",
         "category": "Markdown Sync",
         "icon": "$(open-preview)"
@@ -48,28 +48,28 @@
     "menus": {
       "editor/title": [
         {
-          "command": "markdownSyncEditor.open",
+          "command": "markdownSyncStudio.open",
           "when": "editorLangId == markdown",
           "group": "navigation"
         }
       ],
       "commandPalette": [
         {
-          "command": "markdownSyncEditor.open",
+          "command": "markdownSyncStudio.open",
           "when": "editorLangId == markdown"
         }
       ]
     },
     "configuration": {
-      "title": "Markdown Sync Editor",
+      "title": "Markdown Sync Studio",
       "properties": {
-        "markdownSyncEditor.mermaidTheme": {
+        "markdownSyncStudio.mermaidTheme": {
           "type": "string",
           "enum": ["default", "dark", "forest", "neutral"],
           "default": "default",
           "description": "Mermaid図のテーマ"
         },
-        "markdownSyncEditor.enableEdit": {
+        "markdownSyncStudio.enableEdit": {
           "type": "boolean",
           "default": true,
           "description": "プレビュー上のダブルクリックでブロック編集を有効にする"
