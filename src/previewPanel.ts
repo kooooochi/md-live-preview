@@ -39,7 +39,11 @@ export class PreviewPanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'media')],
+        localResourceRoots: [
+          vscode.Uri.joinPath(context.extensionUri, 'media'),
+          vscode.Uri.file(path.dirname(uri.fsPath)),
+          ...(vscode.workspace.workspaceFolders?.map((f) => f.uri) || []),
+        ],
       }
     );
     const instance = new PreviewPanel(panel, context, uri);
@@ -59,6 +63,7 @@ export class PreviewPanel {
     this.panel = panel;
     this.docUri = docUri;
     this.md = new MarkdownIt({ html: false, linkify: true, breaks: false });
+    this.configureMarkdownRenderer();
 
     this.panel.webview.html = this.getHtml(context);
 
@@ -263,6 +268,42 @@ export class PreviewPanel {
     const html = this.md.render(numberedRaw);
     const hash = crypto.createHash('md5').update(raw).update(html).digest('hex');
     return { hash, raw, type: 'normal', html, startLine, endLine, gitChanged };
+  }
+
+  private configureMarkdownRenderer() {
+    const defaultImageRender =
+      this.md.renderer.rules.image ||
+      ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
+
+    this.md.renderer.rules.image = (tokens, idx, options, env, self) => {
+      const token = tokens[idx];
+      const src = token.attrGet('src');
+      if (src) token.attrSet('src', this.toWebviewImageUri(src));
+      return defaultImageRender(tokens, idx, options, env, self);
+    };
+  }
+
+  private toWebviewImageUri(src: string) {
+    if (/^(https?:|data:|vscode-resource:|vscode-webview-resource:)/i.test(src)) {
+      return src;
+    }
+    if (src.startsWith('#')) return src;
+
+    const match = src.match(/^([^?#]*)([?#].*)?$/);
+    const pathPart = match?.[1] || '';
+    const suffix = match?.[2] || '';
+    if (!pathPart) return src;
+
+    let decodedPath = pathPart;
+    try {
+      decodedPath = decodeURIComponent(pathPart);
+    } catch {
+      decodedPath = pathPart;
+    }
+    const imagePath = path.isAbsolute(decodedPath)
+      ? decodedPath
+      : path.resolve(path.dirname(this.docUri.fsPath), decodedPath);
+    return `${this.panel.webview.asWebviewUri(vscode.Uri.file(imagePath))}${suffix}`;
   }
 
   private addHeadingNumbers(raw: string, counters: number[]) {

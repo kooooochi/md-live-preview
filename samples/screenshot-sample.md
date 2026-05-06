@@ -34,6 +34,12 @@ $$
 
 インライン数式: $a^2 + b^2 = c^2$
 
+## Image
+
+Markdown の画像記法でローカル画像を表示できます。
+
+![Markdown Live Preview overview](../media/screenshots/overview.png)
+
 ## Code Block
 
 コードブロックにマウスを重ねると、右上に Copy ボタンが表示されます。
