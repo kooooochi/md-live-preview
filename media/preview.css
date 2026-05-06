@@ -95,9 +95,35 @@ pre, code {
   font-family: 'SF Mono', Consolas, 'Courier New', monospace;
   background: var(--vscode-textCodeBlock-background, rgba(127,127,127,0.1));
 }
-pre { padding: 0.8em; border-radius: 4px; overflow-x: auto; }
+pre {
+  position: relative;
+  padding: 0.8em;
+  border-radius: 4px;
+  overflow-x: auto;
+}
 code { padding: 1px 4px; border-radius: 3px; }
 pre code { padding: 0; background: transparent; }
+.code-copy-button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 3px;
+  padding: 3px 7px;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--vscode-button-secondaryForeground, var(--vscode-button-foreground));
+  background: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+pre:hover .code-copy-button,
+.code-copy-button:focus {
+  opacity: 1;
+}
+.code-copy-button:hover {
+  background: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-hoverBackground));
+}
 
 blockquote {
   border-left: 3px solid var(--vscode-editorWidget-border, #555);
