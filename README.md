@@ -120,30 +120,21 @@ Git 管理下の Markdown ファイルでは、HEAD から変更されている�
 
 Mermaid は fenced code block として記述します。
 
+````markdown
 ```mermaid
 flowchart TD
   A[Start] --> B[Preview]
 ```
-
-```mermaid
-
-flowchart TD
-  A[Start] --> B[Preview]
-
-```
-
-```markdown
+````
 
 KaTeX のブロック数式は `$$` で囲みます。インライン数式は `$...$` で書けます。
 
-```
-
+```markdown
 $$
 E = mc^2
 $$
 
 インライン数式: $a^2 + b^2 = c^2$
-
 ```
 
 ## 設定
@@ -163,25 +154,30 @@ $$
 
 ### アーキテクチャ
 
-```
+```mermaid
+flowchart LR
+  subgraph Extension["VSCode Extension"]
+    command["mdLivePreview.open"]
+    panel["PreviewPanel"]
+    watcher["FileSystemWatcher\nonDidChangeTextDocument\nGit state watcher"]
+    parser["parseToBlocks()\nheading numbers\nGit changed lines"]
+    differ["diffBlocks()"]
+  end
 
-┌────────────────────────┐         ┌──────────────────────┐
-│ extension.ts           │         │ WebView (preview.js) │
-│  ↓                     │         │                      │
-│ PreviewPanel           │         │  ┌─────────────────┐ │
-│  ├ FileSystemWatcher ──┤ change  │  │ Block cache     │ │
-│  │  + onDidChangeText  │ event   │  │ (hash → DOM)    │ │
-│  ├ parseToBlocks() ────┼────────►│  └─────────────────┘ │
-│  ├ diffBlocks() ───────┤ patch   │  ┌─────────────────┐ │
-│  └ postMessage() ──────┼────────►│  │ Mermaid / KaTeX │ │
-│                        │         │  │ lazy render     │ │
-│  ◄─── editSave ────────┤◄────────┤  └─────────────────┘ │
-│       editStart        │ msg     │  ┌─────────────────┐ │
-│       editCancel       │         │  │ Block editor    │ │
-└────────────────────────┘         │  │ (dblclick→edit) │ │
-                                   │  └─────────────────┘ │
-                                   └──────────────────────┘
+  subgraph Webview["WebView preview.js"]
+    cache["Block cache\nhash + line -> DOM"]
+    renderer["Mermaid / KaTeX\nMarkdown render"]
+    editor["Block editor\ndblclick -> textarea"]
+    ui["Layout controls\ncopy buttons\nGit change bars"]
+  end
 
+  command --> panel
+  watcher -->|file or Git change| panel
+  panel --> parser --> differ
+  differ -->|fullRender / patch| cache
+  cache --> renderer
+  cache --> ui
+  editor -->|editStart / editCancel / editSave / undoEdit| panel
 ```
 
 ## 開発

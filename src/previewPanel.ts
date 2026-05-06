@@ -23,6 +23,7 @@ export class PreviewPanel {
   private lastBlocks: Block[] = [];
   private editLocked = false;
   private editHistory: string[] = [];
+  private gitRefreshTimer: NodeJS.Timeout | undefined;
 
   static createOrShow(context: vscode.ExtensionContext, uri: vscode.Uri) {
     const key = uri.toString();
@@ -69,6 +70,7 @@ export class PreviewPanel {
     );
     watcher.onDidChange(() => this.onFileChanged(), null, this.disposables);
     this.disposables.push(watcher);
+    this.watchGitState();
 
     vscode.workspace.onDidChangeTextDocument(
       (e) => {
@@ -115,6 +117,28 @@ export class PreviewPanel {
 
   private async onFileChanged() {
     await this.render(false);
+  }
+
+  private async watchGitState() {
+    const gitDir = await this.getGitDir();
+    if (!gitDir) return;
+
+    const gitWatcher = vscode.workspace.createFileSystemWatcher(
+      new vscode.RelativePattern(vscode.Uri.file(gitDir), '{HEAD,index,logs/HEAD}')
+    );
+    const refresh = () => this.scheduleGitRefresh();
+    gitWatcher.onDidChange(refresh, null, this.disposables);
+    gitWatcher.onDidCreate(refresh, null, this.disposables);
+    gitWatcher.onDidDelete(refresh, null, this.disposables);
+    this.disposables.push(gitWatcher);
+  }
+
+  private scheduleGitRefresh() {
+    if (this.gitRefreshTimer) clearTimeout(this.gitRefreshTimer);
+    this.gitRefreshTimer = setTimeout(() => {
+      this.gitRefreshTimer = undefined;
+      this.render(false);
+    }, 150);
   }
 
   private async render(isInitial: boolean) {
@@ -326,6 +350,19 @@ export class PreviewPanel {
     });
   }
 
+  private async getGitDir() {
+    try {
+      const gitDir = await this.git(['rev-parse', '--git-dir']);
+      const trimmed = gitDir.trim();
+      if (!trimmed) return undefined;
+      return path.isAbsolute(trimmed)
+        ? trimmed
+        : path.resolve(path.dirname(this.docUri.fsPath), trimmed);
+    } catch {
+      return undefined;
+    }
+  }
+
   private diffBlocks(oldB: Block[], newB: Block[]) {
     const ops: Array<
       | { op: 'keep'; index: number }
@@ -442,6 +479,7 @@ export class PreviewPanel {
 
   dispose() {
     PreviewPanel.panels.delete(this.docUri.toString());
+    if (this.gitRefreshTimer) clearTimeout(this.gitRefreshTimer);
     this.panel.dispose();
     while (this.disposables.length) this.disposables.pop()?.dispose();
   }
