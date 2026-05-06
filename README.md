@@ -2,7 +2,7 @@
 
 LLMがファイルを書き換えても **チラつかない** Markdownプレビュー。Mermaid・KaTeX・テーブル対応。
 
-![demo](media/icon.png)
+![Markdown Live Preview overview](media/screenshots/overview.png)
 
 ## なぜこの拡張?
 
@@ -37,20 +37,31 @@ LLM(Claude / ChatGPT / Cursor など)に Markdown を生成・編集させてい
 | `git-change-bars.png` | `media/screenshots/git-change-bars.png` | Git 変更バーの表示 |
 | `mermaid-katex.png` | `media/screenshots/mermaid-katex.png` | Mermaid と KaTeX のレンダリング |
 | `code-copy.png` | `media/screenshots/code-copy.png` | コードブロックの Copy ボタン |
+| `overview-fited.png` | `media/screenshots/overview-fited.png` | ウィンドウ幅に合わせたプレビュー表示 |
 
-<!-- 画像を用意したら、下のコメントを外してください。
+### 全体表示
 
-![Overview](media/screenshots/overview.png)
+![Markdown エディタとライブプレビュー全体](media/screenshots/overview.png)
 
-![Block editing](media/screenshots/block-editing.png)
+### ウィンドウ幅に合わせた表示
 
-![Git change bars](media/screenshots/git-change-bars.png)
+![ウィンドウ幅に合わせたプレビュー表示](media/screenshots/overview-fited.png)
 
-![Mermaid and KaTeX](media/screenshots/mermaid-katex.png)
+### ブロック編集
 
-![Code copy button](media/screenshots/code-copy.png)
+![プレビュー上でのブロック編集](media/screenshots/block-editing.png)
 
--->
+### Git 変更バー
+
+![Git 変更バーの表示](media/screenshots/git-change-bars.png)
+
+### Mermaid・KaTeX
+
+![Mermaid と KaTeX のレンダリング](media/screenshots/mermaid-katex.png)
+
+### コードブロックのコピー
+
+![コードブロックの Copy ボタン](media/screenshots/code-copy.png)
 
 ## インストール
 
